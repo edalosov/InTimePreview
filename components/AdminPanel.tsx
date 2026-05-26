@@ -51,6 +51,7 @@ export default function AdminPanel() {
     formData.append('title', title.trim());
 
     const res = await fetch('/api/upload', { method: 'POST', body: formData });
+    const data = await res.json();
 
     if (res.ok) {
       setTitle('');
@@ -60,8 +61,10 @@ export default function AdminPanel() {
       if (fileRef.current) fileRef.current.value = '';
       setSuccess('Artwork uploaded successfully.');
       await loadArtworks();
+    } else if (res.status === 401) {
+      setError('Session expired — please log in again.');
     } else {
-      setError('Upload failed. Please try again.');
+      setError(data?.error || 'Upload failed. Please try again.');
     }
 
     setUploading(false);

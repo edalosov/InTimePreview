@@ -31,7 +31,12 @@ export async function POST(request: NextRequest) {
   const slug = titleToSlug(title) || 'untitled';
   const filename = `${Date.now()}__${slug}.${ext}`;
 
-  const blob = await put(filename, file, { access: 'public' });
-
-  return NextResponse.json({ url: blob.url, title: title.trim() });
+  try {
+    const blob = await put(filename, file, { access: 'public' });
+    return NextResponse.json({ url: blob.url, title: title.trim() });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Blob storage error';
+    console.error('Upload error:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

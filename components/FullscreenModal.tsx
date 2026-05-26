@@ -25,7 +25,7 @@ export default function FullscreenModal({ artwork, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/96 px-2"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black px-2"
       onClick={onClose}
     >
       <button
@@ -47,7 +47,7 @@ export default function FullscreenModal({ artwork, onClose }: Props) {
         />
       </div>
 
-      <p className="mt-6 text-zinc-300 text-xs tracking-[0.35em] uppercase">
+      <p className="mt-6 text-white text-xs tracking-[0.35em] uppercase">
         {artwork.title}
       </p>
     </div>

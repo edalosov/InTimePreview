@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body
-        className={`${roboto.className} font-medium bg-white text-zinc-900 dark:bg-[#0a0a0a] dark:text-zinc-100 min-h-screen transition-colors duration-200`}
+        className={`${roboto.className} font-medium bg-[#FFFFFC] text-zinc-900 dark:bg-[#0a0a0a] dark:text-zinc-100 min-h-screen transition-colors duration-200`}
       >
         <ThemeProvider>{children}</ThemeProvider>
       </body>

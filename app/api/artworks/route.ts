@@ -1,19 +1,12 @@
 import { NextResponse } from 'next/server';
 import { list } from '@vercel/blob';
+import { slugToTitle } from '@/lib/utils';
 
 export interface Artwork {
   id: string;
   title: string;
   url: string;
   uploadedAt: string;
-}
-
-function slugToTitle(slug: string): string {
-  return slug
-    .split('-')
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
 }
 
 export async function GET() {

@@ -8,7 +8,7 @@ interface Props {
 export default function ArtworkCard({ artwork, onClick }: Props) {
   return (
     <div
-      className="relative overflow-hidden cursor-pointer group aspect-video bg-zinc-900"
+      className="relative overflow-hidden cursor-pointer group aspect-video bg-zinc-100 dark:bg-zinc-900"
       onClick={onClick}
     >
       <img

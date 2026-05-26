@@ -31,7 +31,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-xs space-y-5">
-        <p className="text-xs tracking-[0.4em] uppercase text-zinc-600 text-center mb-8">
+        <p className="text-xs tracking-[0.4em] uppercase text-zinc-500 text-center mb-8">
           Admin Access
         </p>
 
@@ -42,15 +42,15 @@ export default function LoginPage() {
           placeholder="Password"
           autoFocus
           required
-          className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 px-4 py-3 text-sm outline-none focus:border-zinc-600 transition-colors"
+          className="w-full bg-zinc-100 border border-zinc-200 text-zinc-900 placeholder-zinc-400 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-600 px-4 py-3 text-sm outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors"
         />
 
-        {error && <p className="text-red-400 text-xs text-center">{error}</p>}
+        {error && <p className="text-red-500 dark:text-red-400 text-xs text-center">{error}</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-white text-black text-xs tracking-widest uppercase py-3 hover:bg-zinc-200 transition-colors disabled:opacity-50"
+          className="w-full bg-zinc-900 text-zinc-100 dark:bg-white dark:text-black text-xs tracking-widest uppercase py-3 hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50"
         >
           {loading ? 'Verifying…' : 'Enter'}
         </button>

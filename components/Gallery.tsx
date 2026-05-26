@@ -28,7 +28,9 @@ export default function Gallery() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <span className="text-zinc-600 text-xs tracking-[0.3em] uppercase">Loading</span>
+        <span className="text-zinc-400 dark:text-zinc-600 text-xs tracking-[0.3em] uppercase">
+          Loading
+        </span>
       </div>
     );
   }
@@ -36,7 +38,9 @@ export default function Gallery() {
   if (artworks.length === 0) {
     return (
       <div className="flex items-center justify-center py-32">
-        <span className="text-zinc-700 text-xs tracking-[0.3em] uppercase">No works on display</span>
+        <span className="text-zinc-400 dark:text-zinc-700 text-xs tracking-[0.3em] uppercase">
+          No works on display
+        </span>
       </div>
     );
   }

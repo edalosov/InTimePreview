@@ -47,7 +47,7 @@ export default function FullscreenModal({ artwork, onClose }: Props) {
         />
       </div>
 
-      <p className="mt-6 text-zinc-300 text-xs tracking-[0.35em] uppercase font-light">
+      <p className="mt-6 text-zinc-300 text-xs tracking-[0.35em] uppercase">
         {artwork.title}
       </p>
     </div>

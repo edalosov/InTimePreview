@@ -144,7 +144,7 @@ export default function AdminPanel() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {artworks.map((artwork) => (
               <div key={artwork.id} className="space-y-2">
-                <div className="relative aspect-[4/3] bg-zinc-900 overflow-hidden group">
+                <div className="relative aspect-video bg-zinc-900 overflow-hidden group">
                   <img
                     src={artwork.url}
                     alt={artwork.title}

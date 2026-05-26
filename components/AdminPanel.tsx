@@ -10,6 +10,12 @@ interface Artwork {
   url: string;
 }
 
+interface StorageInfo {
+  totalMB: number;
+  limitMB: number;
+  count: number;
+}
+
 interface PendingItem {
   id: string;
   file: File;
@@ -36,6 +42,7 @@ export default function AdminPanel() {
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedCount, setUploadedCount] = useState(0);
+  const [storage, setStorage] = useState<StorageInfo | null>(null);
   const addMoreRef = useRef<HTMLInputElement>(null);
 
   async function loadArtworks() {
@@ -48,8 +55,16 @@ export default function AdminPanel() {
     }
   }
 
+  async function loadStorage() {
+    try {
+      const res = await fetch('/api/storage');
+      if (res.ok) setStorage(await res.json());
+    } catch {}
+  }
+
   useEffect(() => {
     loadArtworks();
+    loadStorage();
   }, []);
 
   function addFiles(files: FileList) {
@@ -125,6 +140,7 @@ export default function AdminPanel() {
 
     setIsUploading(false);
     await loadArtworks();
+    await loadStorage();
 
     // Auto-clear successfully uploaded items after a short delay
     setTimeout(() => {
@@ -146,14 +162,49 @@ export default function AdminPanel() {
 
     if (res.ok) {
       setArtworks((prev) => prev.filter((a) => a.id !== artwork.id));
+      await loadStorage();
     }
   }
 
   const pendingCount = pendingItems.filter((i) => i.status === 'pending').length;
   const totalQueued = pendingItems.filter((i) => i.status !== 'error').length;
 
+  const usedMB = storage?.totalMB ?? 0;
+  const limitMB = storage?.limitMB ?? 500;
+  const pct = Math.min((usedMB / limitMB) * 100, 100);
+  const barColor =
+    pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-amber-500' : 'bg-emerald-500';
+
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-14">
+      {/* Storage bar */}
+      <section className="space-y-2">
+        <div className="flex justify-between items-baseline">
+          <span className="text-xs tracking-[0.3em] uppercase text-zinc-500">Storage</span>
+          {storage ? (
+            <span className="text-xs text-zinc-500">
+              {usedMB.toFixed(1)} MB{' '}
+              <span className="text-zinc-400 dark:text-zinc-600">/ {limitMB} MB</span>
+            </span>
+          ) : (
+            <span className="text-xs text-zinc-400 dark:text-zinc-600">Loading…</span>
+          )}
+        </div>
+
+        <div className="h-1.5 bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+          <div
+            className={`h-full transition-all duration-700 ${storage ? barColor : 'bg-zinc-300 dark:bg-zinc-700'}`}
+            style={{ width: storage ? `${pct}%` : '0%' }}
+          />
+        </div>
+
+        <p className="text-[11px] text-zinc-400 dark:text-zinc-600">
+          {storage
+            ? `${(limitMB - usedMB).toFixed(1)} MB remaining · ${storage.count} ${storage.count === 1 ? 'file' : 'files'}`
+            : ''}
+        </p>
+      </section>
+
       {/* Upload section */}
       <section className="space-y-6">
         <h2 className="text-xs tracking-[0.3em] uppercase text-zinc-500">Add Artworks</h2>

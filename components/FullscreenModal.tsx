@@ -37,13 +37,13 @@ export default function FullscreenModal({ artwork, onClose }: Props) {
       </button>
 
       <div
-        className="relative flex items-center justify-center w-full"
+        className="relative flex items-center justify-center w-full max-w-6xl"
         onClick={(e) => e.stopPropagation()}
       >
         <img
           src={artwork.url}
           alt={artwork.title}
-          className="max-w-full max-h-[92vh] object-contain"
+          className="max-w-full max-h-[85vh] object-contain"
         />
       </div>
 

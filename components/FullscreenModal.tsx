@@ -25,7 +25,7 @@ export default function FullscreenModal({ artwork, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/96 px-4"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/96 px-2"
       onClick={onClose}
     >
       <button
@@ -37,13 +37,13 @@ export default function FullscreenModal({ artwork, onClose }: Props) {
       </button>
 
       <div
-        className="relative flex items-center justify-center w-full max-w-5xl"
+        className="relative flex items-center justify-center w-full"
         onClick={(e) => e.stopPropagation()}
       >
         <img
           src={artwork.url}
           alt={artwork.title}
-          className="max-w-full max-h-[80vh] object-contain"
+          className="max-w-full max-h-[92vh] object-contain"
         />
       </div>
 

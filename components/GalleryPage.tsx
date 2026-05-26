@@ -34,8 +34,8 @@ export default function GalleryPage() {
 
   const sorted = [...artworks].sort((a, b) =>
     sortDir === 'asc'
-      ? a.title.localeCompare(b.title, undefined, { sensitivity: 'base' })
-      : b.title.localeCompare(a.title, undefined, { sensitivity: 'base' })
+      ? a.title.localeCompare(b.title, undefined, { sensitivity: 'base', numeric: true })
+      : b.title.localeCompare(a.title, undefined, { sensitivity: 'base', numeric: true })
   );
 
   return (

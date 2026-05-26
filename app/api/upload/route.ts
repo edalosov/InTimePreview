@@ -1,42 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { put } from '@vercel/blob';
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { isAuthenticated } from '@/lib/auth';
 
-function titleToSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 80);
-}
-
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<Response> {
   const sessionToken = request.cookies.get('admin_session')?.value;
-  if (!isAuthenticated(sessionToken)) {
+  const body = (await request.json()) as HandleUploadBody;
+
+  // Token-generation requests come from the browser with our session cookie.
+  // Upload-completed callbacks come from Vercel's servers without it.
+  if (body.type === 'blob.generate-client-token' && !isAuthenticated(sessionToken)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const formData = await request.formData();
-  const file = formData.get('file') as File | null;
-  const title = formData.get('title') as string | null;
-
-  if (!file || !title?.trim()) {
-    return NextResponse.json({ error: 'File and title are required' }, { status: 400 });
-  }
-
-  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const slug = titleToSlug(title) || 'untitled';
-  const filename = `${Date.now()}__${slug}.${ext}`;
-
   try {
-    const blob = await put(filename, file, { access: 'public' });
-    return NextResponse.json({ url: blob.url, title: title.trim() });
+    const jsonResponse = await handleUpload({
+      body,
+      request,
+      onBeforeGenerateToken: async () => ({
+        allowedContentTypes: [
+          'image/jpeg',
+          'image/png',
+          'image/webp',
+          'image/gif',
+          'image/avif',
+          'image/tiff',
+          'image/heic',
+        ],
+        maximumSizeInBytes: 50 * 1024 * 1024, // 50 MB
+      }),
+      onUploadCompleted: async () => {},
+    });
+    return Response.json(jsonResponse);
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Blob storage error';
-    console.error('Upload error:', message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return Response.json({ error: (err as Error).message }, { status: 400 });
   }
 }

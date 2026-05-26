@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, FormEvent, ChangeEvent } from 'react';
+import { upload } from '@vercel/blob/client';
+import { titleToSlug } from '@/lib/utils';
 
 interface Artwork {
   id: string;
@@ -38,7 +40,7 @@ export default function AdminPanel() {
     setPreview(URL.createObjectURL(f));
   }
 
-  async function handleUpload(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!file || !title.trim()) return;
 
@@ -46,14 +48,16 @@ export default function AdminPanel() {
     setError('');
     setSuccess('');
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('title', title.trim());
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const slug = titleToSlug(title.trim()) || 'untitled';
+      const filename = `${Date.now()}__${slug}.${ext}`;
 
-    const res = await fetch('/api/upload', { method: 'POST', body: formData });
-    const data = await res.json();
+      await upload(filename, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+      });
 
-    if (res.ok) {
       setTitle('');
       setFile(null);
       if (preview) URL.revokeObjectURL(preview);
@@ -61,10 +65,8 @@ export default function AdminPanel() {
       if (fileRef.current) fileRef.current.value = '';
       setSuccess('Artwork uploaded successfully.');
       await loadArtworks();
-    } else if (res.status === 401) {
-      setError('Session expired — please log in again.');
-    } else {
-      setError(data?.error || 'Upload failed. Please try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed. Please try again.');
     }
 
     setUploading(false);
@@ -89,7 +91,7 @@ export default function AdminPanel() {
       {/* Upload */}
       <section className="space-y-5">
         <h2 className="text-xs tracking-[0.3em] uppercase text-zinc-500">Add Artwork</h2>
-        <form onSubmit={handleUpload} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-6">
             <div className="flex-1 space-y-3">
               <input

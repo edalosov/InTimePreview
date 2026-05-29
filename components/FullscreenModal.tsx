@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect } from 'react';
+import type { TokenPrices } from '@/app/api/nft-prices/route';
 
 interface Props {
   artwork: { url: string; title: string } | null;
+  prices?: TokenPrices;
   onClose: () => void;
 }
 
-export default function FullscreenModal({ artwork, onClose }: Props) {
+export default function FullscreenModal({ artwork, prices, onClose }: Props) {
   useEffect(() => {
     if (!artwork) return;
     const handle = (e: KeyboardEvent) => {
@@ -47,9 +49,25 @@ export default function FullscreenModal({ artwork, onClose }: Props) {
         />
       </div>
 
-      <p className="mt-6 text-white text-xs tracking-[0.35em] uppercase">
-        {artwork.title}
-      </p>
+      <div className="mt-6 flex flex-col items-center gap-2">
+        <p className="text-white text-xs tracking-[0.35em] uppercase">
+          {artwork.title}
+        </p>
+        {prices && (prices.offer || prices.listing) && (
+          <div className="flex flex-col items-center gap-1">
+            {prices.offer && (
+              <p className="text-white text-sm font-medium tracking-widest">
+                Best offer &nbsp;{prices.offer.eth} {prices.offer.currency}
+              </p>
+            )}
+            {prices.listing && (
+              <p className="text-zinc-400 text-xs tracking-wider">
+                Listed at &nbsp;{prices.listing.eth} {prices.listing.currency}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

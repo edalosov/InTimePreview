@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import ThemeToggle from './ThemeToggle';
 import ArtworkCard from './ArtworkCard';
 import FullscreenModal from './FullscreenModal';
+import type { TokenPrices } from '@/app/api/nft-prices/route';
 
 type SortDir = 'asc' | 'desc';
 
@@ -11,6 +12,7 @@ interface Artwork {
   id: string;
   title: string;
   url: string;
+  tokenId?: string;
 }
 
 const btnClass =
@@ -21,12 +23,25 @@ export default function GalleryPage() {
   const [selected, setSelected] = useState<Artwork | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [prices, setPrices] = useState<Record<string, TokenPrices>>({});
 
   useEffect(() => {
     fetch('/api/artworks')
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) setArtworks(data);
+        if (Array.isArray(data)) {
+          setArtworks(data);
+          // Fetch NFT prices in the background after artworks load
+          const tokenIds = data
+            .map((a: Artwork) => a.tokenId)
+            .filter(Boolean);
+          if (tokenIds.length > 0) {
+            fetch('/api/nft-prices')
+              .then((r) => r.json())
+              .then((p) => setPrices(p ?? {}))
+              .catch(() => {});
+          }
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -73,13 +88,18 @@ export default function GalleryPage() {
             <ArtworkCard
               key={artwork.id}
               artwork={artwork}
+              prices={artwork.tokenId ? prices[artwork.tokenId] : undefined}
               onClick={() => setSelected(artwork)}
             />
           ))}
         </div>
       )}
 
-      <FullscreenModal artwork={selected} onClose={() => setSelected(null)} />
+      <FullscreenModal
+        artwork={selected}
+        prices={selected?.tokenId ? prices[selected.tokenId] : undefined}
+        onClose={() => setSelected(null)}
+      />
     </>
   );
 }

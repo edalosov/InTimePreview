@@ -8,6 +8,8 @@ interface Artwork {
   id: string;
   title: string;
   url: string;
+  pathname: string;
+  tokenId?: string;
 }
 
 interface StorageInfo {
@@ -43,15 +45,35 @@ export default function AdminPanel() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedCount, setUploadedCount] = useState(0);
   const [storage, setStorage] = useState<StorageInfo | null>(null);
+  const [tokenDraft, setTokenDraft] = useState<Record<string, string>>({});
+  const [savingToken, setSavingToken] = useState<string | null>(null);
   const addMoreRef = useRef<HTMLInputElement>(null);
 
   async function loadArtworks() {
     try {
       const res = await fetch('/api/artworks');
       const data = await res.json();
-      if (Array.isArray(data)) setArtworks(data);
+      if (Array.isArray(data)) {
+        setArtworks(data);
+        const drafts: Record<string, string> = {};
+        for (const a of data) drafts[a.pathname] = a.tokenId ?? '';
+        setTokenDraft(drafts);
+      }
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function saveTokenId(pathname: string) {
+    setSavingToken(pathname);
+    try {
+      await fetch('/api/metadata', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [pathname]: tokenDraft[pathname] ?? '' }),
+      });
+    } finally {
+      setSavingToken(null);
     }
   }
 
@@ -335,6 +357,20 @@ export default function AdminPanel() {
                   </button>
                 </div>
                 <p className="text-zinc-600 dark:text-zinc-500 text-xs truncate">{artwork.title}</p>
+                <input
+                  type="text"
+                  value={tokenDraft[artwork.pathname] ?? ''}
+                  onChange={(e) =>
+                    setTokenDraft((prev) => ({ ...prev, [artwork.pathname]: e.target.value }))
+                  }
+                  onBlur={() => saveTokenId(artwork.pathname)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                  }}
+                  disabled={savingToken === artwork.pathname}
+                  placeholder="Token ID"
+                  className={inputClass + ' disabled:opacity-40'}
+                />
               </div>
             ))}
           </div>

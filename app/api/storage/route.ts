@@ -1,13 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { list } from '@vercel/blob';
-import { isAuthenticated } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
-  const sessionToken = request.cookies.get('admin_session')?.value;
-  if (!isAuthenticated(sessionToken)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export async function GET() {
   try {
     let totalBytes = 0;
     let count = 0;

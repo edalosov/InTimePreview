@@ -1,17 +1,7 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { isAuthenticated } from '@/lib/auth';
 import AdminPanel from '@/components/AdminPanel';
 import ThemeToggle from '@/components/ThemeToggle';
 
-export default async function AdminPage() {
-  const cookieStore = await cookies();
-  const sessionValue = cookieStore.get('admin_session')?.value;
-
-  if (!isAuthenticated(sessionValue)) {
-    redirect('/login');
-  }
-
+export default function AdminPage() {
   return (
     <main>
       <header className="px-6 py-6 border-b border-zinc-200 dark:border-zinc-900 flex items-center justify-between">

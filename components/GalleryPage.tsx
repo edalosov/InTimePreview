@@ -18,7 +18,7 @@ const btnClass =
 
 export default function GalleryPage() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
-  const [selected, setSelected] = useState<Artwork | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
 
@@ -38,6 +38,11 @@ export default function GalleryPage() {
       : b.title.localeCompare(a.title, undefined, { sensitivity: 'base', numeric: true })
   );
 
+  function showRandom() {
+    if (sorted.length === 0) return;
+    setSelectedIndex(Math.floor(Math.random() * sorted.length));
+  }
+
   return (
     <>
       <header className="px-6 pt-10 pb-8 flex items-center justify-between">
@@ -47,12 +52,17 @@ export default function GalleryPage() {
           <em>In Time</em> by Dalos Dov
         </h1>
 
-        <button
-          onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
-          className={btnClass}
-        >
-          {sortDir === 'asc' ? 'A → Z' : 'Z → A'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={showRandom} className={btnClass}>
+            Random
+          </button>
+          <button
+            onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+            className={btnClass}
+          >
+            {sortDir === 'asc' ? 'A → Z' : 'Z → A'}
+          </button>
+        </div>
       </header>
 
       {loading ? (
@@ -69,17 +79,24 @@ export default function GalleryPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[2px]">
-          {sorted.map((artwork) => (
+          {sorted.map((artwork, index) => (
             <ArtworkCard
               key={artwork.id}
               artwork={artwork}
-              onClick={() => setSelected(artwork)}
+              onClick={() => setSelectedIndex(index)}
             />
           ))}
         </div>
       )}
 
-      <FullscreenModal artwork={selected} onClose={() => setSelected(null)} />
+      <FullscreenModal
+        artwork={selectedIndex !== null ? sorted[selectedIndex] : null}
+        onClose={() => setSelectedIndex(null)}
+        onPrev={() =>
+          setSelectedIndex((i) => (i === null ? null : (i - 1 + sorted.length) % sorted.length))
+        }
+        onNext={() => setSelectedIndex((i) => (i === null ? null : (i + 1) % sorted.length))}
+      />
     </>
   );
 }

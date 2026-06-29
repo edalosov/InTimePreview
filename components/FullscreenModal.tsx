@@ -5,21 +5,31 @@ import { useEffect } from 'react';
 interface Props {
   artwork: { url: string; title: string } | null;
   onClose: () => void;
+  onPrev: () => void;
+  onNext: () => void;
 }
 
-export default function FullscreenModal({ artwork, onClose }: Props) {
+export default function FullscreenModal({ artwork, onClose, onPrev, onNext }: Props) {
+  const isOpen = artwork !== null;
+
   useEffect(() => {
-    if (!artwork) return;
-    const handle = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handle);
+    if (!isOpen) return;
     document.body.style.overflow = 'hidden';
     return () => {
-      document.removeEventListener('keydown', handle);
       document.body.style.overflow = '';
     };
-  }, [artwork, onClose]);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handle = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') onPrev();
+      if (e.key === 'ArrowRight') onNext();
+    };
+    document.addEventListener('keydown', handle);
+    return () => document.removeEventListener('keydown', handle);
+  }, [isOpen, onClose, onPrev, onNext]);
 
   if (!artwork) return null;
 
@@ -34,6 +44,28 @@ export default function FullscreenModal({ artwork, onClose }: Props) {
         aria-label="Close"
       >
         ×
+      </button>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onPrev();
+        }}
+        className="absolute left-1 sm:left-6 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors text-4xl leading-none px-3 py-6"
+        aria-label="Previous artwork"
+      >
+        ‹
+      </button>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onNext();
+        }}
+        className="absolute right-1 sm:right-6 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors text-4xl leading-none px-3 py-6"
+        aria-label="Next artwork"
+      >
+        ›
       </button>
 
       <div

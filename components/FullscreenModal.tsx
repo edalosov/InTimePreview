@@ -7,9 +7,20 @@ interface Props {
   onClose: () => void;
   onPrev: () => void;
   onNext: () => void;
+  onRandom: () => void;
+  onBack: () => void;
+  canGoBack: boolean;
 }
 
-export default function FullscreenModal({ artwork, onClose, onPrev, onNext }: Props) {
+export default function FullscreenModal({
+  artwork,
+  onClose,
+  onPrev,
+  onNext,
+  onRandom,
+  onBack,
+  canGoBack,
+}: Props) {
   const isOpen = artwork !== null;
 
   useEffect(() => {
@@ -45,6 +56,34 @@ export default function FullscreenModal({ artwork, onClose, onPrev, onNext }: Pr
       >
         ×
       </button>
+
+      <div className="absolute top-5 left-6 flex items-center gap-5 text-[10px] tracking-[0.25em] uppercase">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onBack();
+          }}
+          disabled={!canGoBack}
+          className={
+            canGoBack
+              ? 'text-zinc-500 hover:text-white transition-colors'
+              : 'text-zinc-700 cursor-not-allowed'
+          }
+          aria-label="Back to previous image"
+        >
+          Back
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRandom();
+          }}
+          className="text-zinc-500 hover:text-white transition-colors"
+          aria-label="Random artwork"
+        >
+          Random
+        </button>
+      </div>
 
       <button
         onClick={(e) => {

@@ -19,6 +19,7 @@ const btnClass =
 export default function GalleryPage() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [history, setHistory] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
 
@@ -38,9 +39,39 @@ export default function GalleryPage() {
       : b.title.localeCompare(a.title, undefined, { sensitivity: 'base', numeric: true })
   );
 
+  function openAt(index: number) {
+    setHistory([]);
+    setSelectedIndex(index);
+  }
+
   function showRandom() {
     if (sorted.length === 0) return;
+    if (selectedIndex === null) setHistory([]);
+    else setHistory((h) => [...h, selectedIndex]);
     setSelectedIndex(Math.floor(Math.random() * sorted.length));
+  }
+
+  function showNext() {
+    if (selectedIndex === null) return;
+    setHistory((h) => [...h, selectedIndex]);
+    setSelectedIndex((selectedIndex + 1) % sorted.length);
+  }
+
+  function showPrev() {
+    if (selectedIndex === null) return;
+    setHistory((h) => [...h, selectedIndex]);
+    setSelectedIndex((selectedIndex - 1 + sorted.length) % sorted.length);
+  }
+
+  function showBack() {
+    if (history.length === 0) return;
+    setSelectedIndex(history[history.length - 1]);
+    setHistory(history.slice(0, -1));
+  }
+
+  function closeModal() {
+    setSelectedIndex(null);
+    setHistory([]);
   }
 
   return (
@@ -83,7 +114,7 @@ export default function GalleryPage() {
             <ArtworkCard
               key={artwork.id}
               artwork={artwork}
-              onClick={() => setSelectedIndex(index)}
+              onClick={() => openAt(index)}
             />
           ))}
         </div>
@@ -91,11 +122,12 @@ export default function GalleryPage() {
 
       <FullscreenModal
         artwork={selectedIndex !== null ? sorted[selectedIndex] : null}
-        onClose={() => setSelectedIndex(null)}
-        onPrev={() =>
-          setSelectedIndex((i) => (i === null ? null : (i - 1 + sorted.length) % sorted.length))
-        }
-        onNext={() => setSelectedIndex((i) => (i === null ? null : (i + 1) % sorted.length))}
+        onClose={closeModal}
+        onPrev={showPrev}
+        onNext={showNext}
+        onRandom={showRandom}
+        onBack={showBack}
+        canGoBack={history.length > 0}
       />
     </>
   );

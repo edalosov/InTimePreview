@@ -80,37 +80,34 @@ export default function FullscreenModal({
       </button>
 
       <div
+        className="flex items-center gap-4 text-xs tracking-[0.2em] uppercase mb-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onBack}
+          disabled={!canGoBack}
+          className={
+            canGoBack
+              ? 'text-zinc-300 hover:text-white transition-colors'
+              : 'text-zinc-700 cursor-not-allowed'
+          }
+          aria-label="Back to previous image"
+        >
+          Back
+        </button>
+        <button
+          onClick={onRandom}
+          className="text-zinc-300 hover:text-white transition-colors"
+          aria-label="Random artwork"
+        >
+          Random
+        </button>
+      </div>
+
+      <div
         className="relative flex items-center justify-center w-full max-w-6xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 text-xs tracking-[0.2em] uppercase">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onBack();
-            }}
-            disabled={!canGoBack}
-            className={
-              canGoBack
-                ? 'bg-black/60 backdrop-blur-sm rounded-full px-4 py-2 text-zinc-200 hover:text-white hover:bg-black/80 transition-colors'
-                : 'bg-black/30 backdrop-blur-sm rounded-full px-4 py-2 text-zinc-600 cursor-not-allowed'
-            }
-            aria-label="Back to previous image"
-          >
-            Back
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onRandom();
-            }}
-            className="bg-black/60 backdrop-blur-sm rounded-full px-4 py-2 text-zinc-200 hover:text-white hover:bg-black/80 transition-colors"
-            aria-label="Random artwork"
-          >
-            Random
-          </button>
-        </div>
-
         <img
           src={artwork.url}
           alt={artwork.title}

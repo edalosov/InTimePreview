@@ -80,28 +80,36 @@ export default function FullscreenModal({
       </button>
 
       <div
-        className="flex items-center gap-4 text-xs tracking-[0.2em] uppercase mb-5"
+        className="flex items-center gap-2 mb-5"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onBack}
           disabled={!canGoBack}
-          className={
+          className={`text-[10px] tracking-[0.2em] uppercase px-4 py-1.5 border transition-colors ${
             canGoBack
-              ? 'text-zinc-300 hover:text-white transition-colors'
-              : 'text-zinc-700 cursor-not-allowed'
-          }
+              ? 'border-zinc-600 text-zinc-300 hover:border-white hover:text-white'
+              : 'border-zinc-800 text-zinc-700 cursor-not-allowed'
+          }`}
           aria-label="Back to previous image"
         >
-          Back
+          ← Back
         </button>
         <button
           onClick={onRandom}
-          className="text-zinc-300 hover:text-white transition-colors"
+          className="text-[10px] tracking-[0.2em] uppercase px-4 py-1.5 border border-zinc-600 text-zinc-300 hover:border-white hover:text-white transition-colors"
           aria-label="Random artwork"
         >
           Random
         </button>
+        <a
+          href={artwork.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[10px] tracking-[0.2em] uppercase px-4 py-1.5 border border-zinc-600 text-zinc-300 hover:border-white hover:text-white transition-colors"
+        >
+          Open in browser ↗
+        </a>
       </div>
 
       <div

@@ -43,6 +43,8 @@ export default function AdminPanel() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedCount, setUploadedCount] = useState(0);
   const [storage, setStorage] = useState<StorageInfo | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
   const addMoreRef = useRef<HTMLInputElement>(null);
 
   async function loadArtworks() {
@@ -162,8 +164,55 @@ export default function AdminPanel() {
 
     if (res.ok) {
       setArtworks((prev) => prev.filter((a) => a.id !== artwork.id));
+      setSelectedIds((prev) => { const next = new Set(prev); next.delete(artwork.id); return next; });
       await loadStorage();
     }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function selectAll() { setSelectedIds(new Set(artworks.map((a) => a.id))); }
+  function clearSelection() { setSelectedIds(new Set()); }
+
+  async function handleDeleteSelected() {
+    const toDelete = artworks.filter((a) => selectedIds.has(a.id));
+    if (!toDelete.length) return;
+    if (!confirm(`Remove ${toDelete.length} artwork${toDelete.length === 1 ? '' : 's'} from the gallery?`)) return;
+    setIsDeleting(true);
+    for (const artwork of toDelete) {
+      await fetch('/api/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: artwork.url }),
+      });
+    }
+    setIsDeleting(false);
+    setSelectedIds(new Set());
+    await loadArtworks();
+    await loadStorage();
+  }
+
+  async function handleDeleteAll() {
+    if (!artworks.length) return;
+    if (!confirm(`Remove ALL ${artworks.length} artworks from the gallery? This cannot be undone.`)) return;
+    setIsDeleting(true);
+    for (const artwork of artworks) {
+      await fetch('/api/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: artwork.url }),
+      });
+    }
+    setIsDeleting(false);
+    setSelectedIds(new Set());
+    await loadArtworks();
+    await loadStorage();
   }
 
   const pendingCount = pendingItems.filter((i) => i.status === 'pending').length;
@@ -308,9 +357,43 @@ export default function AdminPanel() {
 
       {/* Gallery section */}
       <section className="space-y-5">
-        <h2 className="text-xs tracking-[0.3em] uppercase text-zinc-500">
-          Gallery{!loading && ` — ${artworks.length} ${artworks.length === 1 ? 'work' : 'works'}`}
-        </h2>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <h2 className="text-xs tracking-[0.3em] uppercase text-zinc-500">
+            Gallery{!loading && ` — ${artworks.length} ${artworks.length === 1 ? 'work' : 'works'}`}
+          </h2>
+          {!loading && artworks.length > 0 && (
+            <div className="flex items-center gap-4 text-xs tracking-widest uppercase">
+              {selectedIds.size > 0 ? (
+                <>
+                  <span className="text-zinc-500">{selectedIds.size} selected</span>
+                  <button onClick={clearSelection} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
+                    Deselect All
+                  </button>
+                  <button
+                    onClick={handleDeleteSelected}
+                    disabled={isDeleting}
+                    className="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors disabled:opacity-40"
+                  >
+                    {isDeleting ? 'Deleting…' : `Delete Selected (${selectedIds.size})`}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={selectAll} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
+                    Select All
+                  </button>
+                  <button
+                    onClick={handleDeleteAll}
+                    disabled={isDeleting}
+                    className="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors disabled:opacity-40"
+                  >
+                    Delete All
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
 
         {loading ? (
           <p className="text-zinc-400 dark:text-zinc-600 text-xs tracking-widest uppercase">Loading…</p>
@@ -320,7 +403,10 @@ export default function AdminPanel() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {artworks.map((artwork) => (
               <div key={artwork.id} className="space-y-2">
-                <div className="relative aspect-video bg-zinc-100 dark:bg-zinc-900 overflow-hidden group">
+                <div
+                  className="relative aspect-video bg-zinc-100 dark:bg-zinc-900 overflow-hidden group cursor-pointer"
+                  onClick={() => selectedIds.size > 0 ? toggleSelect(artwork.id) : undefined}
+                >
                   <img
                     src={artwork.url}
                     alt={artwork.title}
@@ -328,11 +414,26 @@ export default function AdminPanel() {
                     className="w-full h-full object-cover"
                   />
                   <button
-                    onClick={() => handleDelete(artwork)}
-                    className="absolute inset-0 bg-black/70 text-red-400 text-xs tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    onClick={(e) => { e.stopPropagation(); toggleSelect(artwork.id); }}
+                    className={`absolute top-2 left-2 w-5 h-5 border-2 flex items-center justify-center transition-all z-10 ${
+                      selectedIds.has(artwork.id)
+                        ? 'bg-white border-white opacity-100'
+                        : 'bg-black/40 border-zinc-300 opacity-0 group-hover:opacity-100'
+                    }`}
+                    aria-label={selectedIds.has(artwork.id) ? 'Deselect' : 'Select'}
                   >
-                    Remove
+                    {selectedIds.has(artwork.id) && (
+                      <span className="text-black text-[10px] font-bold leading-none">✓</span>
+                    )}
                   </button>
+                  {selectedIds.size === 0 && (
+                    <button
+                      onClick={() => handleDelete(artwork)}
+                      className="absolute inset-0 bg-black/70 text-red-400 text-xs tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
                 <p className="text-zinc-600 dark:text-zinc-500 text-xs truncate">{artwork.title}</p>
               </div>

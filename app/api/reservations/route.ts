@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { list, put, del } from '@vercel/blob';
 
+export const dynamic = 'force-dynamic';
+
 const PREFIX = '__reservations';
 
 type Reservations = Record<string, { reservedBy: string }>;

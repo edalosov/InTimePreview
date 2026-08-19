@@ -152,7 +152,7 @@ function GifCard({ artwork, onClick, isSaved, onToggleSave, isReserved }: Props)
 
 export default function ArtworkCard({ artwork, onClick, isSaved, onToggleSave, isReserved }: Props) {
   if (isGifUrl(artwork.url)) {
-    return <GifCard artwork={artwork} onClick={onClick} isSaved={isSaved} onToggleSave={onToggleSave} />;
+    return <GifCard artwork={artwork} onClick={onClick} isSaved={isSaved} onToggleSave={onToggleSave} isReserved={isReserved} />;
   }
 
   return (

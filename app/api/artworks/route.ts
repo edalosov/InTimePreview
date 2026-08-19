@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { list } from '@vercel/blob';
 import { slugToTitle } from '@/lib/utils';
 
+export const dynamic = 'force-dynamic';
+
 export interface Artwork {
   id: string;
   title: string;
@@ -15,7 +17,7 @@ async function getReservations(): Promise<Record<string, string>> {
     const { blobs } = await list({ prefix: '__reservations' });
     if (!blobs.length) return {};
     blobs.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
-    const res = await fetch(blobs[0].url, { cache: 'no-store' });
+    const res = await fetch(blobs[0].url, { cache: 'no-store', next: { revalidate: 0 } });
     const data = await res.json() as Record<string, { reservedBy: string }>;
     const flat: Record<string, string> = {};
     for (const [url, val] of Object.entries(data)) flat[url] = val.reservedBy;

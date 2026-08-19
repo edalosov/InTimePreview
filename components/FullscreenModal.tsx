@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 
 interface Props {
-  artwork: { url: string; title: string } | null;
+  artwork: { id: string; url: string; title: string } | null;
   onClose: () => void;
   onPrev: () => void;
   onNext: () => void;
@@ -12,6 +12,8 @@ interface Props {
   canGoBack: boolean;
   onForward: () => void;
   canGoForward: boolean;
+  isSaved: boolean;
+  onToggleSave: () => void;
 }
 
 export default function FullscreenModal({
@@ -24,6 +26,8 @@ export default function FullscreenModal({
   canGoBack,
   onForward,
   canGoForward,
+  isSaved,
+  onToggleSave,
 }: Props) {
   const isOpen = artwork !== null;
 
@@ -117,6 +121,17 @@ export default function FullscreenModal({
           aria-label="Random artwork"
         >
           Random
+        </button>
+        <button
+          onClick={onToggleSave}
+          className={`text-[10px] tracking-[0.2em] uppercase px-4 py-1.5 border transition-colors ${
+            isSaved
+              ? 'border-red-500 text-red-400 hover:border-red-300 hover:text-red-300'
+              : 'border-zinc-600 text-zinc-300 hover:border-white hover:text-white'
+          }`}
+          aria-label={isSaved ? 'Remove from saved' : 'Save'}
+        >
+          {isSaved ? '♥ Saved' : '♡ Save'}
         </button>
       </div>
 

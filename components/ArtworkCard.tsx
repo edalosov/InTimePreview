@@ -3,15 +3,33 @@
 import { useEffect, useRef, useState } from 'react';
 
 interface Props {
-  artwork: { url: string; title: string };
+  artwork: { id: string; url: string; title: string };
   onClick: () => void;
+  isSaved: boolean;
+  onToggleSave: () => void;
 }
 
 function isGifUrl(url: string) {
   return url.split('?')[0].toLowerCase().endsWith('.gif');
 }
 
-function GifCard({ artwork, onClick }: Props) {
+function HeartButton({ isSaved, onToggleSave }: { isSaved: boolean; onToggleSave: () => void }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
+      className={`absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-base transition-all z-10 ${
+        isSaved
+          ? 'opacity-100 text-red-400'
+          : 'opacity-0 group-hover:opacity-100 text-white'
+      }`}
+      aria-label={isSaved ? 'Remove from saved' : 'Save'}
+    >
+      {isSaved ? '♥' : '♡'}
+    </button>
+  );
+}
+
+function GifCard({ artwork, onClick, isSaved, onToggleSave }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loaderRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -53,7 +71,6 @@ function GifCard({ artwork, onClick }: Props) {
     const ih = img.naturalHeight;
     if (!iw || !ih) return;
 
-    // object-fit: cover crop
     const scale = Math.max(cw / iw, ch / ih);
     const sw = cw / scale;
     const sh = ch / scale;
@@ -63,7 +80,7 @@ function GifCard({ artwork, onClick }: Props) {
     try {
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch);
       setPosterReady(true);
-      img.src = ''; // stop GIF animation; browser serves from cache on next hover
+      img.src = '';
     } catch {
       // CORS blocked — GIF plays normally as fallback
     }
@@ -77,7 +94,6 @@ function GifCard({ artwork, onClick }: Props) {
       onMouseEnter={() => { if (inViewport) setIsHovered(true); }}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Hidden loader: lazy-loads GIF and captures first frame to canvas */}
       <img
         ref={loaderRef}
         src={artwork.url}
@@ -89,13 +105,11 @@ function GifCard({ artwork, onClick }: Props) {
         className={`absolute inset-0 w-full h-full object-cover ${posterReady ? 'hidden' : ''}`}
       />
 
-      {/* Canvas stays in DOM so canvasRef is set before captureFrame runs */}
       <canvas
         ref={canvasRef}
         className={`absolute inset-0 w-full h-full ${posterReady && !showGif ? '' : 'hidden'}`}
       />
 
-      {/* Animated GIF: only mounted while hovering in viewport */}
       {showGif && (
         <img
           src={artwork.url}
@@ -105,7 +119,6 @@ function GifCard({ artwork, onClick }: Props) {
         />
       )}
 
-      {/* Play hint on the static poster */}
       {posterReady && !showGif && (
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <div className="w-9 h-9 rounded-full bg-black/50 flex items-center justify-center">
@@ -113,6 +126,8 @@ function GifCard({ artwork, onClick }: Props) {
           </div>
         </div>
       )}
+
+      <HeartButton isSaved={isSaved} onToggleSave={onToggleSave} />
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
         <p className="text-white text-xs tracking-[0.2em] uppercase translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
@@ -123,9 +138,9 @@ function GifCard({ artwork, onClick }: Props) {
   );
 }
 
-export default function ArtworkCard({ artwork, onClick }: Props) {
+export default function ArtworkCard({ artwork, onClick, isSaved, onToggleSave }: Props) {
   if (isGifUrl(artwork.url)) {
-    return <GifCard artwork={artwork} onClick={onClick} />;
+    return <GifCard artwork={artwork} onClick={onClick} isSaved={isSaved} onToggleSave={onToggleSave} />;
   }
 
   return (
@@ -139,6 +154,7 @@ export default function ArtworkCard({ artwork, onClick }: Props) {
         loading="lazy"
         className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
       />
+      <HeartButton isSaved={isSaved} onToggleSave={onToggleSave} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
         <p className="text-white text-xs tracking-[0.2em] uppercase translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
           {artwork.title}

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import ThemeToggle from './ThemeToggle';
 import ArtworkCard from './ArtworkCard';
 import FullscreenModal from './FullscreenModal';
+import { useSavedArtworks } from '@/lib/useSavedArtworks';
 
 type SortDir = 'asc' | 'desc';
 
@@ -25,6 +26,8 @@ export default function GalleryPage() {
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [ready, setReady] = useState(false);
   const [overlayMounted, setOverlayMounted] = useState(true);
+  const [showSaved, setShowSaved] = useState(false);
+  const { savedIds, toggle: toggleSave } = useSavedArtworks();
 
   useEffect(() => {
     fetch('/api/artworks')
@@ -63,11 +66,13 @@ export default function GalleryPage() {
       });
   }, []);
 
-  const sorted = [...artworks].sort((a, b) =>
-    sortDir === 'asc'
-      ? a.title.localeCompare(b.title, undefined, { sensitivity: 'base', numeric: true })
-      : b.title.localeCompare(a.title, undefined, { sensitivity: 'base', numeric: true })
-  );
+  const sorted = [...artworks]
+    .filter((a) => !showSaved || savedIds.has(a.id))
+    .sort((a, b) =>
+      sortDir === 'asc'
+        ? a.title.localeCompare(b.title, undefined, { sensitivity: 'base', numeric: true })
+        : b.title.localeCompare(a.title, undefined, { sensitivity: 'base', numeric: true })
+    );
 
   function openAt(index: number) {
     setHistory([]);
@@ -155,6 +160,12 @@ export default function GalleryPage() {
           >
             {sortDir === 'asc' ? 'A → Z' : 'Z → A'}
           </button>
+          <button
+            onClick={() => { setShowSaved((s) => !s); setSelectedIndex(null); setHistory([]); setFuture([]); }}
+            className={`${btnClass} ${showSaved ? 'border-red-400 text-red-400 dark:border-red-500 dark:text-red-500' : ''}`}
+          >
+            {showSaved ? `♥ Saved${savedIds.size > 0 ? ` (${savedIds.size})` : ''}` : `♡ Saved${savedIds.size > 0 ? ` (${savedIds.size})` : ''}`}
+          </button>
         </div>
       </header>
 
@@ -164,6 +175,12 @@ export default function GalleryPage() {
             No works on display
           </span>
         </div>
+      ) : showSaved && sorted.length === 0 ? (
+        <div className="flex items-center justify-center py-32">
+          <span className="text-zinc-400 dark:text-zinc-700 text-xs tracking-[0.3em] uppercase">
+            No saved works yet — click ♡ on any artwork
+          </span>
+        </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[2px]">
           {sorted.map((artwork, index) => (
@@ -171,6 +188,8 @@ export default function GalleryPage() {
               key={artwork.id}
               artwork={artwork}
               onClick={() => openAt(index)}
+              isSaved={savedIds.has(artwork.id)}
+              onToggleSave={() => toggleSave(artwork.id)}
             />
           ))}
         </div>
@@ -186,6 +205,8 @@ export default function GalleryPage() {
         canGoBack={history.length > 0}
         onForward={showForward}
         canGoForward={future.length > 0}
+        isSaved={selectedIndex !== null ? savedIds.has(sorted[selectedIndex]?.id) : false}
+        onToggleSave={() => { if (selectedIndex !== null) toggleSave(sorted[selectedIndex].id); }}
       />
     </>
   );

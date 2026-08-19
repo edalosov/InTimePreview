@@ -33,6 +33,50 @@ function filenameToTitle(filename: string): string {
     .trim();
 }
 
+function StaticGif({ src, alt }: { src: string; alt: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [captured, setCaptured] = useState(false);
+
+  function capture() {
+    const img = imgRef.current;
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!img || !canvas || !container) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const cw = container.clientWidth || 300;
+    const ch = container.clientHeight || 169;
+    canvas.width = cw;
+    canvas.height = ch;
+    const iw = img.naturalWidth, ih = img.naturalHeight;
+    if (!iw || !ih) return;
+    const scale = Math.max(cw / iw, ch / ih);
+    const sw = cw / scale, sh = ch / scale;
+    try {
+      ctx.drawImage(img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, 0, 0, cw, ch);
+      setCaptured(true);
+      img.src = '';
+    } catch {}
+  }
+
+  return (
+    <div ref={containerRef} className="absolute inset-0">
+      <img
+        ref={imgRef}
+        src={src}
+        alt={alt}
+        crossOrigin="anonymous"
+        loading="lazy"
+        onLoad={capture}
+        className={`w-full h-full object-cover ${captured ? 'hidden' : ''}`}
+      />
+      <canvas ref={canvasRef} className={`w-full h-full ${captured ? '' : 'hidden'}`} />
+    </div>
+  );
+}
+
 const inputClass =
   'w-full bg-zinc-50 border border-zinc-200 text-zinc-900 placeholder-zinc-400 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-600 px-3 py-2 text-xs outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors disabled:opacity-50';
 
@@ -434,12 +478,16 @@ export default function AdminPanel() {
                   className="relative aspect-video bg-zinc-100 dark:bg-zinc-900 overflow-hidden group cursor-pointer"
                   onClick={() => selectedIds.size > 0 ? toggleSelect(artwork.id) : undefined}
                 >
-                  <img
-                    src={artwork.url}
-                    alt={artwork.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover"
-                  />
+                  {artwork.url.split('?')[0].toLowerCase().endsWith('.gif') ? (
+                    <StaticGif src={artwork.url} alt={artwork.title} />
+                  ) : (
+                    <img
+                      src={artwork.url}
+                      alt={artwork.title}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleSelect(artwork.id); }}
                     className={`absolute top-2 left-2 w-5 h-5 border-2 flex items-center justify-center transition-all z-10 ${

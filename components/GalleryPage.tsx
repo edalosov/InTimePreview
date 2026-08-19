@@ -22,15 +22,44 @@ export default function GalleryPage() {
   const [history, setHistory] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [ready, setReady] = useState(false);
+  const [overlayMounted, setOverlayMounted] = useState(true);
 
   useEffect(() => {
     fetch('/api/artworks')
       .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) setArtworks(data);
+      .then((data: unknown) => {
+        const list: Artwork[] = Array.isArray(data) ? data : [];
+        setArtworks(list);
         setLoading(false);
+
+        if (list.length === 0) {
+          setReady(true);
+          return;
+        }
+
+        // Preload the first batch of non-GIF images so the grid appears polished
+        const toPreload = list
+          .filter((a) => !a.url.split('?')[0].toLowerCase().endsWith('.gif'))
+          .slice(0, 10);
+
+        const preloads = toPreload.map(
+          (a) =>
+            new Promise<void>((resolve) => {
+              const img = new Image();
+              img.onload = img.onerror = () => resolve();
+              img.src = a.url;
+            })
+        );
+
+        // Never wait more than 5 s regardless of network
+        const timeout = new Promise<void>((resolve) => setTimeout(resolve, 5000));
+        Promise.race([Promise.all(preloads), timeout]).then(() => setReady(true));
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setLoading(false);
+        setReady(true);
+      });
   }, []);
 
   const sorted = [...artworks].sort((a, b) =>
@@ -76,6 +105,25 @@ export default function GalleryPage() {
 
   return (
     <>
+      {/* Loading overlay — sits on top while assets warm up, then fades out */}
+      {overlayMounted && (
+        <div
+          onTransitionEnd={() => { if (ready) setOverlayMounted(false); }}
+          className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#FFFFFC] dark:bg-[#0a0a0a] transition-opacity duration-700 ${
+            ready ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+        >
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 tracking-wide">
+            <em>In Time</em> by Dalos Dov
+          </p>
+          <div className="mt-6 flex gap-2">
+            <span className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-600 animate-bounce [animation-delay:0ms]" />
+            <span className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-600 animate-bounce [animation-delay:150ms]" />
+            <span className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-600 animate-bounce [animation-delay:300ms]" />
+          </div>
+        </div>
+      )}
+
       <header className="px-6 pt-10 pb-8 flex items-center justify-between">
         <ThemeToggle />
 
@@ -96,13 +144,7 @@ export default function GalleryPage() {
         </div>
       </header>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-32">
-          <span className="text-zinc-400 dark:text-zinc-600 text-xs tracking-[0.3em] uppercase">
-            Loading
-          </span>
-        </div>
-      ) : artworks.length === 0 ? (
+      {loading ? null : artworks.length === 0 ? (
         <div className="flex items-center justify-center py-32">
           <span className="text-zinc-400 dark:text-zinc-700 text-xs tracking-[0.3em] uppercase">
             No works on display

@@ -91,7 +91,8 @@ function GifCard({ artwork, onClick, isSaved, onToggleSave, isReserved }: Props)
     try {
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch);
       setPosterReady(true);
-      img.src = '';
+      // Keep src intact — GIF stays cached. display:none will stop/reset animation
+      // until hover, so it plays from frame 1 instantly with no re-download.
     } catch {
       // CORS blocked — GIF plays normally as fallback
     }
@@ -105,30 +106,21 @@ function GifCard({ artwork, onClick, isSaved, onToggleSave, isReserved }: Props)
       onMouseEnter={() => { if (inViewport) setIsHovered(true); }}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Single img: visible while loading + on hover; hidden (display:none) to show poster.
+          display:none stops GIF animation and resets it, so hover always starts from frame 1. */}
       <img
         ref={loaderRef}
         src={artwork.url}
-        alt=""
-        aria-hidden
-        loading="lazy"
+        alt={artwork.title}
         crossOrigin="anonymous"
         onLoad={captureFrame}
-        className={`absolute inset-0 w-full h-full object-cover ${posterReady ? 'hidden' : ''}`}
+        className={`absolute inset-0 w-full h-full object-cover ${posterReady && !showGif ? 'hidden' : ''}`}
       />
 
       <canvas
         ref={canvasRef}
         className={`absolute inset-0 w-full h-full ${posterReady && !showGif ? '' : 'hidden'}`}
       />
-
-      {showGif && (
-        <img
-          src={artwork.url}
-          alt={artwork.title}
-          crossOrigin="anonymous"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-      )}
 
       {posterReady && !showGif && (
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">

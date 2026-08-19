@@ -134,13 +134,20 @@ export default function GalleryPage() {
             ready ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
+          <style>{`
+            @keyframes loadbar { from { transform: scaleX(0); } to { transform: scaleX(0.88); } }
+          `}</style>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 tracking-wide">
             <em>In Time</em> by Dalos Dov (Preview)
           </p>
-          <div className="mt-6 flex gap-2">
-            <span className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-600 animate-bounce [animation-delay:0ms]" />
-            <span className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-600 animate-bounce [animation-delay:150ms]" />
-            <span className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-600 animate-bounce [animation-delay:300ms]" />
+          <p className="mt-3 text-[10px] text-zinc-400 dark:text-zinc-600 tracking-[0.35em] uppercase">
+            Loading artworks…
+          </p>
+          <div className="mt-6 w-48 h-px bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+            <div
+              className="h-full bg-zinc-400 dark:bg-zinc-500 origin-left"
+              style={{ animation: 'loadbar 5s ease-out forwards' }}
+            />
           </div>
         </div>
       )}

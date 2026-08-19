@@ -14,6 +14,7 @@ export async function GET() {
     const { blobs } = await list();
 
     const artworks: Artwork[] = blobs
+      .filter((blob) => !blob.pathname.startsWith('__'))
       .map((blob) => {
         const nameWithoutExt = blob.pathname.replace(/\.[^.]+$/, '');
         const separatorIndex = nameWithoutExt.indexOf('__');

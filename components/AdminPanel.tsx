@@ -45,7 +45,33 @@ export default function AdminPanel() {
   const [storage, setStorage] = useState<StorageInfo | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [reservations, setReservations] = useState<Record<string, string>>({});
+  const [reserveEditing, setReserveEditing] = useState<string | null>(null);
+  const [reserveDraft, setReserveDraft] = useState('');
   const addMoreRef = useRef<HTMLInputElement>(null);
+
+  async function loadReservations() {
+    try {
+      const res = await fetch('/api/reservations');
+      if (res.ok) {
+        const data = await res.json();
+        const flat: Record<string, string> = {};
+        for (const [url, val] of Object.entries(data as Record<string, { reservedBy: string }>)) {
+          flat[url] = val.reservedBy;
+        }
+        setReservations(flat);
+      }
+    } catch {}
+  }
+
+  async function saveReservation(url: string, reservedBy: string | null) {
+    await fetch('/api/reservations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, reservedBy }),
+    });
+    await loadReservations();
+  }
 
   async function loadArtworks() {
     try {
@@ -67,6 +93,7 @@ export default function AdminPanel() {
   useEffect(() => {
     loadArtworks();
     loadStorage();
+    loadReservations();
   }, []);
 
   function addFiles(files: FileList) {
@@ -436,6 +463,65 @@ export default function AdminPanel() {
                   )}
                 </div>
                 <p className="text-zinc-600 dark:text-zinc-500 text-xs truncate">{artwork.title}</p>
+
+                {/* Reservation controls */}
+                {reserveEditing === artwork.url ? (
+                  <div className="space-y-1.5">
+                    <input
+                      autoFocus
+                      type="text"
+                      value={reserveDraft}
+                      onChange={(e) => setReserveDraft(e.target.value)}
+                      placeholder="Reserved by…"
+                      className={inputClass}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          if (reserveDraft.trim()) await saveReservation(artwork.url, reserveDraft.trim());
+                          setReserveEditing(null);
+                          setReserveDraft('');
+                        }}
+                        className="text-[10px] tracking-widest uppercase text-zinc-900 dark:text-zinc-100 border border-zinc-400 dark:border-zinc-600 px-3 py-1 hover:border-zinc-700 dark:hover:border-zinc-400 transition-colors"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => { setReserveEditing(null); setReserveDraft(''); }}
+                        className="text-[10px] tracking-widest uppercase text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : reservations[artwork.url] ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-amber-600 dark:text-amber-400 tracking-widest uppercase truncate">
+                      Reserved — {reservations[artwork.url]}
+                    </span>
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        onClick={() => { setReserveEditing(artwork.url); setReserveDraft(reservations[artwork.url]); }}
+                        className="text-[10px] tracking-widest uppercase text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => saveReservation(artwork.url, null)}
+                        className="text-[10px] tracking-widest uppercase text-red-400 hover:text-red-600 transition-colors"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setReserveEditing(artwork.url); setReserveDraft(''); }}
+                    className="text-[10px] tracking-widest uppercase text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+                  >
+                    + Reserve
+                  </button>
+                )}
               </div>
             ))}
           </div>

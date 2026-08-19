@@ -7,6 +7,7 @@ interface Props {
   onClick: () => void;
   isSaved: boolean;
   onToggleSave: () => void;
+  isReserved?: boolean;
 }
 
 function isGifUrl(url: string) {
@@ -29,7 +30,17 @@ function HeartButton({ isSaved, onToggleSave }: { isSaved: boolean; onToggleSave
   );
 }
 
-function GifCard({ artwork, onClick, isSaved, onToggleSave }: Props) {
+function ReservedOverlay() {
+  return (
+    <div className="absolute inset-0 bg-zinc-900/60 flex items-center justify-center z-20 pointer-events-none">
+      <span className="text-white text-[10px] tracking-[0.35em] uppercase border border-white/60 px-3 py-1">
+        Reserved
+      </span>
+    </div>
+  );
+}
+
+function GifCard({ artwork, onClick, isSaved, onToggleSave, isReserved }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const loaderRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -127,6 +138,7 @@ function GifCard({ artwork, onClick, isSaved, onToggleSave }: Props) {
         </div>
       )}
 
+      {isReserved && <ReservedOverlay />}
       <HeartButton isSaved={isSaved} onToggleSave={onToggleSave} />
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
@@ -138,7 +150,7 @@ function GifCard({ artwork, onClick, isSaved, onToggleSave }: Props) {
   );
 }
 
-export default function ArtworkCard({ artwork, onClick, isSaved, onToggleSave }: Props) {
+export default function ArtworkCard({ artwork, onClick, isSaved, onToggleSave, isReserved }: Props) {
   if (isGifUrl(artwork.url)) {
     return <GifCard artwork={artwork} onClick={onClick} isSaved={isSaved} onToggleSave={onToggleSave} />;
   }
@@ -154,6 +166,7 @@ export default function ArtworkCard({ artwork, onClick, isSaved, onToggleSave }:
         loading="lazy"
         className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
       />
+      {isReserved && <ReservedOverlay />}
       <HeartButton isSaved={isSaved} onToggleSave={onToggleSave} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
         <p className="text-white text-xs tracking-[0.2em] uppercase translate-y-2 group-hover:translate-y-0 transition-transform duration-300">

@@ -20,6 +20,7 @@ export default function GalleryPage() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [history, setHistory] = useState<number[]>([]);
+  const [future, setFuture] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [ready, setReady] = useState(false);
@@ -70,6 +71,7 @@ export default function GalleryPage() {
 
   function openAt(index: number) {
     setHistory([]);
+    setFuture([]);
     setSelectedIndex(index);
   }
 
@@ -77,30 +79,42 @@ export default function GalleryPage() {
     if (sorted.length === 0) return;
     if (selectedIndex === null) setHistory([]);
     else setHistory((h) => [...h, selectedIndex]);
+    setFuture([]);
     setSelectedIndex(Math.floor(Math.random() * sorted.length));
   }
 
   function showNext() {
     if (selectedIndex === null) return;
     setHistory((h) => [...h, selectedIndex]);
+    setFuture([]);
     setSelectedIndex((selectedIndex + 1) % sorted.length);
   }
 
   function showPrev() {
     if (selectedIndex === null) return;
     setHistory((h) => [...h, selectedIndex]);
+    setFuture([]);
     setSelectedIndex((selectedIndex - 1 + sorted.length) % sorted.length);
   }
 
   function showBack() {
-    if (history.length === 0) return;
+    if (history.length === 0 || selectedIndex === null) return;
+    setFuture((f) => [...f, selectedIndex]);
     setSelectedIndex(history[history.length - 1]);
     setHistory(history.slice(0, -1));
+  }
+
+  function showForward() {
+    if (future.length === 0 || selectedIndex === null) return;
+    setHistory((h) => [...h, selectedIndex]);
+    setSelectedIndex(future[future.length - 1]);
+    setFuture(future.slice(0, -1));
   }
 
   function closeModal() {
     setSelectedIndex(null);
     setHistory([]);
+    setFuture([]);
   }
 
   return (
@@ -114,7 +128,7 @@ export default function GalleryPage() {
           }`}
         >
           <p className="text-sm text-zinc-600 dark:text-zinc-400 tracking-wide">
-            <em>In Time</em> by Dalos Dov
+            <em>In Time</em> by Dalos Dov (Preview)
           </p>
           <div className="mt-6 flex gap-2">
             <span className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-600 animate-bounce [animation-delay:0ms]" />
@@ -128,7 +142,7 @@ export default function GalleryPage() {
         <ThemeToggle />
 
         <h1 className="text-sm text-zinc-600 dark:text-zinc-400 tracking-wide">
-          <em>In Time</em> by Dalos Dov
+          <em>In Time</em> by Dalos Dov (Preview)
         </h1>
 
         <div className="flex items-center gap-2">
@@ -170,6 +184,8 @@ export default function GalleryPage() {
         onRandom={showRandom}
         onBack={showBack}
         canGoBack={history.length > 0}
+        onForward={showForward}
+        canGoForward={future.length > 0}
       />
     </>
   );

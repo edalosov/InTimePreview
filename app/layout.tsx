@@ -10,7 +10,7 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: 'In Time by Dalos Dov',
+  title: 'In Time by Dalos Dov (Preview)',
   description: 'Art Collection',
 };
 

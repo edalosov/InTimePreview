@@ -10,6 +10,8 @@ interface Props {
   onRandom: () => void;
   onBack: () => void;
   canGoBack: boolean;
+  onForward: () => void;
+  canGoForward: boolean;
 }
 
 export default function FullscreenModal({
@@ -20,6 +22,8 @@ export default function FullscreenModal({
   onRandom,
   onBack,
   canGoBack,
+  onForward,
+  canGoForward,
 }: Props) {
   const isOpen = artwork !== null;
 
@@ -94,6 +98,18 @@ export default function FullscreenModal({
           aria-label="Back to previous image"
         >
           ← Back
+        </button>
+        <button
+          onClick={onForward}
+          disabled={!canGoForward}
+          className={`text-[10px] tracking-[0.2em] uppercase px-4 py-1.5 border transition-colors ${
+            canGoForward
+              ? 'border-zinc-600 text-zinc-300 hover:border-white hover:text-white'
+              : 'border-zinc-800 text-zinc-700 cursor-not-allowed'
+          }`}
+          aria-label="Forward to next image"
+        >
+          Next →
         </button>
         <button
           onClick={onRandom}

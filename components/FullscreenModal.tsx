@@ -102,14 +102,6 @@ export default function FullscreenModal({
         >
           Random
         </button>
-        <a
-          href={artwork.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[10px] tracking-[0.2em] uppercase px-4 py-1.5 border border-zinc-600 text-zinc-300 hover:border-white hover:text-white transition-colors"
-        >
-          Open in browser ↗
-        </a>
       </div>
 
       <div

@@ -12,6 +12,7 @@ interface Artwork {
   id: string;
   title: string;
   url: string;
+  reservedBy: string | null;
 }
 
 const btnClass =
@@ -27,7 +28,6 @@ export default function GalleryPage() {
   const [ready, setReady] = useState(false);
   const [overlayMounted, setOverlayMounted] = useState(true);
   const [showSaved, setShowSaved] = useState(false);
-  const [reservations, setReservations] = useState<Record<string, string>>({});
   const { savedIds, toggle: toggleSave } = useSavedArtworks();
 
   useEffect(() => {
@@ -66,14 +66,6 @@ export default function GalleryPage() {
         setReady(true);
       });
 
-    fetch('/api/reservations', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((data: Record<string, { reservedBy: string }>) => {
-        const flat: Record<string, string> = {};
-        for (const [url, val] of Object.entries(data)) flat[url] = val.reservedBy;
-        setReservations(flat);
-      })
-      .catch(() => {});
   }, []);
 
   const sorted = [...artworks]
@@ -202,7 +194,7 @@ export default function GalleryPage() {
               onClick={() => openAt(index)}
               isSaved={savedIds.has(artwork.id)}
               onToggleSave={() => toggleSave(artwork.id)}
-              isReserved={!!reservations[artwork.url]}
+              isReserved={!!artwork.reservedBy}
             />
           ))}
         </div>
@@ -220,6 +212,7 @@ export default function GalleryPage() {
         canGoForward={future.length > 0}
         isSaved={selectedIndex !== null ? savedIds.has(sorted[selectedIndex]?.id) : false}
         onToggleSave={() => { if (selectedIndex !== null) toggleSave(sorted[selectedIndex].id); }}
+
       />
     </>
   );

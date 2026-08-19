@@ -32,8 +32,8 @@ function HeartButton({ isSaved, onToggleSave }: { isSaved: boolean; onToggleSave
 
 function ReservedOverlay() {
   return (
-    <div className="absolute inset-0 bg-zinc-900/60 flex items-center justify-center z-20 pointer-events-none">
-      <span className="text-white text-[10px] tracking-[0.35em] uppercase border border-white/60 px-3 py-1">
+    <div className="absolute inset-0 bg-zinc-900/75 flex items-center justify-center z-20 pointer-events-none">
+      <span className="text-white text-[13px] tracking-[0.35em] uppercase border border-white/60 px-3 py-1">
         Reserved
       </span>
     </div>

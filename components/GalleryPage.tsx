@@ -162,7 +162,9 @@ export default function GalleryPage() {
           </button>
           <button
             onClick={() => { setShowSaved((s) => !s); setSelectedIndex(null); setHistory([]); setFuture([]); }}
-            className={`${btnClass} ${showSaved ? 'border-red-400 text-red-400 dark:border-red-500 dark:text-red-500' : ''}`}
+            className={showSaved
+              ? 'border border-red-500 bg-red-500 text-white text-[10px] tracking-[0.2em] uppercase px-3 py-1.5 font-medium transition-all hover:bg-red-600 hover:border-red-600'
+              : btnClass}
           >
             {showSaved ? `♥ Saved${savedIds.size > 0 ? ` (${savedIds.size})` : ''}` : `♡ Saved${savedIds.size > 0 ? ` (${savedIds.size})` : ''}`}
           </button>

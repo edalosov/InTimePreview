@@ -57,9 +57,9 @@ export default function GalleryPage() {
             })
         );
 
-        // Never wait more than 5 s regardless of network
-        const timeout = new Promise<void>((resolve) => setTimeout(resolve, 5000));
-        Promise.race([Promise.all(preloads), timeout]).then(() => setReady(true));
+        const minWait = new Promise<void>((resolve) => setTimeout(resolve, 4000));
+        const maxWait = new Promise<void>((resolve) => setTimeout(resolve, 6000));
+        Promise.all([Promise.race([Promise.all(preloads), maxWait]), minWait]).then(() => setReady(true));
       })
       .catch(() => {
         setLoading(false);

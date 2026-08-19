@@ -10,7 +10,10 @@ async function fetchReservations(): Promise<Reservations> {
     const { blobs } = await list({ prefix: PREFIX });
     if (!blobs.length) return {};
     blobs.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
-    const res = await fetch(`${blobs[0].url}?t=${Date.now()}`);
+    const res = await fetch(blobs[0].url, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store' },
+    });
     return await res.json();
   } catch {
     return {};
@@ -18,7 +21,10 @@ async function fetchReservations(): Promise<Reservations> {
 }
 
 export async function GET() {
-  return NextResponse.json(await fetchReservations());
+  const data = await fetchReservations();
+  return NextResponse.json(data, {
+    headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -32,13 +38,13 @@ export async function POST(request: NextRequest) {
     data[url] = { reservedBy };
   }
 
-  // Delete all old reservation blobs then write the new one
+  // Delete all existing reservation blobs then write a fresh one
   const { blobs } = await list({ prefix: PREFIX });
   await Promise.all(blobs.map((b) => del(b.url)));
 
   await put(`${PREFIX}.json`, JSON.stringify(data), {
     access: 'public',
-    addRandomSuffix: false,
+    addRandomSuffix: true,
     contentType: 'application/json',
   });
 

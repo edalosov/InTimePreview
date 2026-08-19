@@ -66,7 +66,7 @@ export default function GalleryPage() {
         setReady(true);
       });
 
-    fetch('/api/reservations')
+    fetch('/api/reservations', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data: Record<string, { reservedBy: string }>) => {
         const flat: Record<string, string> = {};
